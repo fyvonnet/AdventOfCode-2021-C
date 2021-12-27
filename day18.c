@@ -4,7 +4,7 @@
 #include <toylib.h>
 
 typedef enum { PAIR, NUMBER } NODE_TYPE;
-typedef array_type(struct node *) array_sfnums;
+typedef array_type(char*) array_strings;
 
 struct node {
     NODE_TYPE type;
@@ -14,8 +14,6 @@ struct node {
     int number; };
 
 toystack *stack;
-
-void print_node(struct node *n);
 
 struct node *convert(char *str)
 {
@@ -215,32 +213,30 @@ int main()
 
     FILE *fp = fopen("inputs/day18", "r");
     char buffer[100];
-    array_sfnums sfnums;
+    array_strings sfnums;
     array_init(sfnums);
 
-    while ((fscanf(fp, "%s", buffer)) != EOF)
-        array_add(sfnums, struct node *, convert(buffer));
+    while ((fscanf(fp, "%s", buffer)) != EOF) {
+        char *s = malloc(100);
+        strcpy(s, buffer);
+        array_add(sfnums, char*, s);
+    }
 
-    struct node *sum = array_ref(sfnums, 0);
+    fclose(fp);
+
+    struct node *sum = convert(array_ref(sfnums, 0));
     for (int i = 1; i < array_size(sfnums); i++)
-        sum = add(sum, array_ref(sfnums, i));
+        sum = add(sum, convert(array_ref(sfnums, i)));
 
     printf("%d\n", magnitude(sum));
-
-    rewind(fp);
-    char sfnums_str[array_size(sfnums)][100];
-    for (int i = 0; i < array_size(sfnums); i++) {
-        fscanf(fp, "%s", sfnums_str[i]);
-    }
 
     int m, max = 0;
 
     for (int i = 0; i < array_size(sfnums) - 1; i++)
         for (int j = 1; j < array_size(sfnums); j++) {
-            m = magnitude(add(convert(sfnums_str[i]), convert(sfnums_str[j])));
+            m = magnitude(add(convert(array_ref(sfnums, i)), convert(array_ref(sfnums, j))));
             if (m > max) max = m;
-
-            m = magnitude(add(convert(sfnums_str[j]), convert(sfnums_str[i])));
+            m = magnitude(add(convert(array_ref(sfnums, j)), convert(array_ref(sfnums, i))));
             if (m > max) max = m;
         }
 
@@ -248,3 +244,4 @@ int main()
 
     exit(EXIT_SUCCESS);
 }
+
