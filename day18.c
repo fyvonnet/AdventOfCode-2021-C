@@ -125,14 +125,10 @@ int explode (struct node *n, int depth)
         return 1;
     }
 
-    if (explode(n->left, depth + 1) == 1)
-        return 1;
-
-    if (explode(n->right, depth + 1) == 1)
-        return 1;
+    explode(n->left, depth + 1);
+    explode(n->right, depth + 1);
 
     return 0;
-
 }
 
 int split (struct node *n)
@@ -176,7 +172,7 @@ void reduce (struct node *n)
 
     while (has_reduced) {
         has_reduced = 0;
-        while (explode(n, 1))
+        if (explode(n, 1))
             has_reduced = 1;
         if (split(n))
             has_reduced = 1;
