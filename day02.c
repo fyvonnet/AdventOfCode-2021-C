@@ -9,6 +9,8 @@ struct command {
     int x;
 };
 
+typedef struct { int aim, hpos, depth; } data;
+
 typedef array_type(struct command *) array_commands;
 
 char *get_match_string(char *str, int a, int b)
@@ -20,6 +22,43 @@ char *get_match_string(char *str, int a, int b)
     match[len] = '\0';
 
     return match;
+}
+
+void forw1(int x, data *d) { d->hpos += x; }
+void down1(int x, data *d) { d->depth += x; }
+void up1(int x, data *d) { d->depth -= x; }
+
+void down2(int x, data *d) { d->aim += x; }
+void up2(int x, data *d) { d->aim -= x; }
+void forw2(int x, data *d)
+{
+    d->hpos += x;
+    d->depth += (d->aim * x);
+}
+
+int run_part(array_commands commands,
+        void (*forw) (int, data *),
+        void (*up)   (int, data *),
+        void (*down) (int, data *))
+{
+    data *d = malloc(sizeof(data));
+    d->aim = d->hpos = d->depth = 0;
+
+    for (int i = 0; i < array_size(commands); i++) {
+        struct command *c = array_ref(commands, i);
+        switch (c->name) {
+            case FORWARD:
+                forw(c->x, d);
+                break;
+            case DOWN:
+                down(c->x, d);
+                break;
+            case UP:
+                up(c->x, d);
+                break;
+        }
+    }
+    return (d->hpos * d->depth);
 }
 
 int main()
@@ -52,47 +91,8 @@ int main()
         array_add(commands, struct command *, c);
     }
 
-    int hpos = 0, depth = 0;
-
-    for (int i = 0; i < array_size(commands); i++) {
-        struct command *c = array_ref(commands, i);
-        switch (c->name) {
-            case FORWARD:
-                hpos += c->x;
-                break;
-            case DOWN:
-                depth += c->x;
-                break;
-            case UP:
-                depth -= c->x;
-                break;
-        }
-    }
-
-    printf("%d\n", hpos * depth);
-
-    int aim = 0;
-    hpos = 0;
-    depth = 0;
-
-    for (int i = 0; i < array_size(commands); i++) {
-        struct command *c = array_ref(commands, i);
-        switch (c->name) {
-            case DOWN:
-                aim += c->x;
-                break;
-            case UP:
-                aim -= c->x;
-                break;
-            case FORWARD:
-                hpos += c->x;
-                depth += (aim * c->x);
-                break;
-        }
-    }
-
-    printf("%d\n", hpos * depth);
-
+    printf("%d\n", run_part(commands, forw1, up1, down1));
+    printf("%d\n", run_part(commands, forw2, up2, down2));
 
     exit(EXIT_SUCCESS);
 }
